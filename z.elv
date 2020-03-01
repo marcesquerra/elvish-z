@@ -70,9 +70,11 @@ fn z [@args]{
     return
   }
 
-  zdest = (zlua --cd $arg_type $arg_subdir $arg_inter $@args_rest)
-  if (and (not-eq $zdest "") ?(test -d $zdest)) {
-    zlua-cd $zdest
+  zdest = [(zlua --cd $arg_type $arg_subdir $arg_inter $@args_rest)]
+  if (eq $zdest []) {
+    fail "No destination folder could be found"
+  } elif ?(test -d $zdest[0]) {
+    zlua-cd $zdest[0]
     if $zlua-echo { pwd }
   }
 }
