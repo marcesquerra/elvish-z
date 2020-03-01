@@ -3,10 +3,17 @@ zlua-dir = $E:HOME/.elvish/lib/github.com/skywind3000/z.lua
 zlua-path = $zlua-dir/z.lua
 zlua-cd~ = [dest]{ builtin:cd $dest }
 zlua-echo = $false
+zlua-enhanced = $true
+
+fn zlua [@args]{
+  if $zlua-enhanced {
+    E:_ZL_MATCH_MODE=1 ( external $zlua-path ) $@args
+  } else {
+    ( external $zlua-path ) $@args
+  }
+}
 
 fn z [@args]{
-
-  zlua~ = ( external $zlua-path )
 
   if (eq $args []) {
     zlua -l
@@ -70,9 +77,7 @@ fn z [@args]{
   }
 }
 
-fn setup {
-
-  zlua~ = ( external $zlua-path )
+fn setup [&once=false]{
 
   fn add-before-readline [@hooks]{
     each [hook]{
@@ -82,8 +87,22 @@ fn setup {
     } $hooks
   }
 
-  add-before-readline {
-    zlua --add $pwd
+  fn add-after-chdir [@hooks]{
+    each [hook]{
+      if (not (has-value $builtin:after-chdir $hook)) {
+        builtin:after-chdir=[ $@builtin:after-chdir $hook ]
+      }
+    } $hooks
+  }
+
+  if $once {
+    add-after-chdir [dir]{
+      zlua --add $pwd
+    }
+  } else {
+    add-before-readline {
+      zlua --add $pwd
+    }
   }
 
 }
